@@ -4,11 +4,20 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var bodyParser = require('body-parser')
+var mongoose = require('mongoose');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
-
+//connection to MongoDB using Mongoose
+mongoose.connect("mongodb://localhost:27017/UnityDB",{
+  useNewUrlParser:true,
+  useUnifiedTopology:true
+}).then(function(){
+  console.log("Connected to MongoDB")
+}).catch(function(err){
+  console.log(err)
+})
 
 var app = express();
 
