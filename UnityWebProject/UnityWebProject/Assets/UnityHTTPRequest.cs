@@ -1,10 +1,12 @@
 using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Text;
 using TMPro;
 using UnityEngine.UI;
+
 //using UnityEngine.UIElements;
 
 public class UnityHTTPRequest : MonoBehaviour
@@ -19,8 +21,9 @@ public class UnityHTTPRequest : MonoBehaviour
     
     string postData;
 
-    
+    [Serializable]
     public class MyData { 
+        //Change Data for whatever you need
         public string myName;
         public int myScore;
         public float myHealth;
@@ -31,33 +34,24 @@ public class UnityHTTPRequest : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
-        MyData myData = new MyData();
-        myData.myName = "Logan";
-        postData = JsonUtility.ToJson(myData);
-        
-        Debug.Log(postData);
-        StartCoroutine(MakeWebRequest());
+        //StartCoroutine(MakeWebRequest());
     }
 
     IEnumerator MakeWebRequest()
     {
-       // WWWForm myForm = new WWWForm();
-        //myForm.AddField("name", "Logan");
         //GET Request Example
         var getRequest = new UnityWebRequest($"http://localhost:3000/unity?name={nameData}");
+        getRequest.downloadHandler = new DownloadHandlerBuffer();
         yield return getRequest.SendWebRequest();
-
-        //creating a variable that stores the post request
-        //byte[] bodyData = Encoding.UTF8.GetBytes(postData);
-        //UnityWebRequest postRequest = UnityWebRequest.Post("http://localhost:3000/unityPost", bodyData.ToString());
-       // postRequest.uploadHandler = new UploadHandlerRaw(bodyData);
-       // postRequest.SetRequestHeader("Content-Type", "application/json");
+        Debug.Log(getRequest.result);
         
-        //yield return postRequest.SendWebRequest();
-    }
+        
 
-    IEnumerator PostRequest(string sendData) {
+        //CreateSingleObjectFromData(getRequest);
+        //CreateObjectsFromArray(jsonData);
+    }
+    IEnumerator PostRequest(string sendData)
+    {
         var request = new UnityWebRequest("http://localhost:3000/unityPost", "POST");
         byte[] bodyData = Encoding.UTF8.GetBytes(sendData);
         request.uploadHandler = new UploadHandlerRaw(bodyData);
@@ -66,6 +60,35 @@ public class UnityHTTPRequest : MonoBehaviour
         yield return request.SendWebRequest();
 
     }
+
+    IEnumerator MakeWebRequestSingle()
+    {
+        //GET Request Example with Query
+        var getRequest = new UnityWebRequest($"http://localhost:3000/unityGetOne?name={nameData}");
+        getRequest.downloadHandler = new DownloadHandlerBuffer();
+        yield return getRequest.SendWebRequest();
+        Debug.Log(getRequest.result);
+
+
+
+        //CreateSingleObjectFromData(getRequest);
+        //CreateObjectsFromArray(jsonData);
+    }
+
+    private static void CreateSingleObjectFromData(UnityWebRequest getRequest)
+    {
+        var deserializedJson = JsonUtility.FromJson<MyData>(getRequest.downloadHandler.text);
+        Debug.Log(deserializedJson.myName);
+    }
+
+    private void CreateObjectsFromArray(string jsonData)
+    {
+        string jsonString = fixJson(jsonData);
+        MyData[] objData = JsonHelper.FromJson<MyData>(jsonString);  
+        //create data object array here
+    }
+
+    
 
     public void SendData() {
         MyData sendData = new MyData();
@@ -77,5 +100,41 @@ public class UnityHTTPRequest : MonoBehaviour
         Debug.Log(postData);
         StartCoroutine(PostRequest(postData)); 
     
+    }
+
+    string fixJson(string value)
+    {
+        value = "{\"Items\":" + value + "}";
+        return value;
+    }
+
+    public static class JsonHelper
+    {
+        public static T[] FromJson<T>(string json)
+        {
+            Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(json);
+            Debug.Log(wrapper.Items);
+            return wrapper.Items;
+        }
+
+        public static string ToJson<T>(T[] array)
+        {
+            Wrapper<T> wrapper = new Wrapper<T>();
+            wrapper.Items = array;
+            return JsonUtility.ToJson(wrapper);
+        }
+
+        public static string ToJson<T>(T[] array, bool prettyPrint)
+        {
+            Wrapper<T> wrapper = new Wrapper<T>();
+            wrapper.Items = array;
+            return JsonUtility.ToJson(wrapper, prettyPrint);
+        }
+
+        [Serializable]
+        private class Wrapper<T>
+        {
+            public T[] Items;
+        }
     }
 }

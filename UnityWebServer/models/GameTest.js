@@ -2,14 +2,14 @@ var mongoose = require("mongoose")
 var Schema = mongoose.Schema;
 
 var GameTestSchema = new Schema({
-    name:{
+    myName:{
         type:String,
         required:true
     },
-    score:{
+    myScore:{
         type:Number
     },
-    health:{
+    myHealth:{
         type:Number
     },
     isDead:{
