@@ -17,4 +17,4 @@ var GameTestSchema = new Schema({
     }
 })
 
-mongoose.model('gameTest', GameTestSchema)
+module.exports =  mongoose.model('gameTest', GameTestSchema)
